@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link href='normalize.css' rel='stylesheet' type='text/css'>
+<link href='sakura.css' id="sakura-css" rel='stylesheet' type='text/css'>
+<!-- https://oxal.org/projects/sakura/ -->
+<title> iwa - miya </title>
+<style type="text/css">
+  #layer {
+      display: none;  /* 初期表示は非表示 */
+      position: fixed; 
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      opacity: 0.20;
+      z-index: 1;
+  }
+  #popup {
+      display: none;  /* 初期表示は非表示 */
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      left: 0px;
+      margin: auto;
+      width: 100px;
+      height: 200px;
+      background-color: white;
+      border-radius: 5px;
+      text-align: center;
+      align-items: center;
+      z-index: 1;
+  }
+  #popupChild {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      left: 0px;
+      margin: auto;
+      width: 100px;
+      height: 200px;
+      background-color: white;
+      border-radius: 5px;
+      text-align: center;
+      align-items: center;
+      z-index: 1;
+  }
+
+  #chartLayer {
+      display: none;  /* 初期表示は非表示 */
+      position: fixed; 
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      opacity: 0.20;
+      z-index: 1;
+  }
+  #chartPopup {
+      display: none;  /* 初期表示は非表示 */
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      left: 0px;
+      margin: auto;
+      width: 400px;
+      height: 550px;
+      background-color: white;
+      border-radius: 5px;
+      text-align: center;
+      align-items: center;
+      z-index: 1;
+  }
+  #chartPopupChild {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      left: 0px;
+      margin: auto;
+      width: 400px;
+      height: 550px;
+      background-color: white;
+      border-radius: 5px;
+      text-align: center;
+      align-items: center;
+      z-index: 1;
+  }
+
+  #legend {
+        padding: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+    ul.pie-legend {
+        list-style: none outside none;
+        float: left;
+        margin: 0 0 0 0;
+        padding: 0;
+        position: relative;
+        left: 50%;
+    }
+    ul.pie-legend > li {
+        float: left;
+        margin-right: 5px;
+        padding: 5px;
+        position: relative;
+        left: -50%;
+    }
+</style>
+</head>
+<body>
+<h5>1 ビジョン・知恵　<button id="visionBtn" onclick="getClick(this); event.stopPropagation()">record!</button></h5>
+<textarea id="vision" rows="4" cols="120"></textarea><br>
+<h5>2 教育・学習　<button id="learnBtn" onclick="getClick(this); event.stopPropagation()">record!</button></h5>
+<textarea id="learn" rows="4" cols="120"></textarea><br>
+<h5>3 分析・洞察　<button id="analyzeBtn" onclick="getClick(this); event.stopPropagation()">record!</button></h5>
+<textarea id="analyze" rows="4" cols="120"></textarea><br>
+<center><h3><button id="postButton" onclick="postWords(); event.stopPropagation()">判定！</button></h3></center>
+<div id="layer"></div>
+<div id="popup">
+  <h1><div id="timer"></div></h1>
+</div>
+<div id="chartLayer"></div>
+<div id="chartPopup">
+  <canvas id="radarChart" height="400" width="400"></canvas>
+  <div id="legend"></div>
+  <input type="button" value="close popup" onclick="closeChartPopup(); event.stopPropagation()">"
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+<script>
+let url = "http://127.0.0.1:5000"
+//let url = "http://10.232.198.212:40000"
+let categoryFlag = 0;
+let timer;
+
+SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+let recognition = new SpeechRecognition();
+
+recognition.lang = 'ja-JP';
+recognition.interimResults = true;
+recognition.continuous = true;
+
+let words = '';
+let finalTranscript = '';
+
+recognition.onresult = (event) => {
+  let interimTranscript = '';
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    let transcript = event.results[i][0].transcript;
+    if (event.results[i].isFinal) {
+      finalTranscript += transcript;
+    } else {
+      interimTranscript = transcript;
+    }
+  }
+  console.log(finalTranscript + ' ' + interimTranscript);
+  words = finalTranscript + interimTranscript;
+  console.log(words);
+}
+
+function closePopup() {
+  var e = document.getElementById("popup");
+  e.style.display = "none";
+
+  var f = document.getElementById("layer");
+  f.style.display = "none";
+}
+
+function openPopup() {
+  var e = document.getElementById("popup");
+  e.style.display = "block";
+
+  var f = document.getElementById("layer");
+  f.style.display = "block";
+}
+
+function closeChartPopup() {
+  var e = document.getElementById("chartPopup");
+  e.style.display = "none";
+
+  var f = document.getElementById("chartLayer");
+  f.style.display = "none";
+}
+
+function openChartPopup() {
+  var e = document.getElementById("chartPopup");
+  e.style.display = "block";
+
+  var f = document.getElementById("chartLayer");
+  f.style.display = "block";
+}
+
+function emptyAlert() {
+  alert("空の項目があります！");
+}
+
+function postWords() {
+  const visons = document.getElementById('vision').value;
+  const learns = document.getElementById('learn').value;
+  const analyzes = document.getElementById('analyze').value;
+
+  if (visons.length == 0) { 
+    emptyAlert();
+    return
+  }
+  if (learns.length == 0) {
+    emptyAlert();
+    return
+  }
+  if (analyzes.length == 0) {
+    emptyAlert();
+    return 
+  }
+
+  let data = {
+    "vision": visons,
+    "learn": learns,
+    "analyze": analyzes,
+  };
+
+  console.log(data);
+
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }).then(response => {
+    return response.json();
+  }).then(result => {
+    console.log(result);
+    displayPieChart(result.vision, result.learn, result.analyze);
+  });
+
+}
+
+function splitInt(classci, intVal) {
+  if (classci == "1") {
+    return [parseInt(intVal,10) , (100 - intVal)];
+  } else {
+    return [(100 - intVal), parseInt(intVal, 10)];
+  }
+}
+
+function iwaMiya(vision,learn,analyze) {
+  var visions = vision.split(/:/);
+  var learns = learn.split(/:/);
+  var analyzes = analyze.split(/:/);
+
+  var [x, y] = splitInt(visions[0],visions[1])
+  var [xx, yy] = splitInt(learns[0],learns[1])
+  var [xxx, yyy] = splitInt(analyzes[0],analyzes[1])
+
+  var iwa = [x, xx, xxx];
+  var miya = [y, yy, yyy];
+
+  return [iwa, miya];
+}
+
+function displayPieChart(vision, learn, analyze) {
+  let iwa = new Array(3);
+  let miya = new Array(3);
+
+  [iwa, miya] = iwaMiya(vision, learn, analyze);
+
+  openChartPopup();
+
+  var data = {
+    labels: ["ビジョン・知恵", "教育・学習", "分析・洞察"],
+    datasets: [
+      {
+      label: "iwa",
+      fillColor: "rgba(200,0,0,0.2)",
+      strokeColor: "blue",
+      pointColor: "blue",
+      pointStrokeColor: "blue",
+      pointHighlightFill: "blue",
+      pointHighlightStroke: "blue",
+      data: [iwa[0], iwa[1], iwa[2]]
+      }, 
+      {
+      label: "miya",
+      fillColor: "rgba(200,0,0,0.2)",
+      strokeColor: "red",
+      pointColor: "red",
+      pointStrokeColor: "red",
+      pointHighlightFill: "red",
+      pointHighlightStroke: "red",
+      data: [miya[0], miya[1], miya[2]] 
+      }
+  ] };
+
+  var ctx = document.getElementById("radarChart").getContext("2d");
+  var options = { 
+      legendTemplate : "<% for (var i=0; i<datasets.length; i++){%><span style=\"background-color:<%=datasets[i].strokeColor%>\">&nbsp;&nbsp;&nbsp;</span>&nbsp;<%if(datasets[i].label){%><%=datasets[i].label%><%}%><br><%}%>"
+  };
+  var radarChart = new Chart(ctx).Radar(data, options);
+  document.getElementById("legend").innerHTML = radarChart.generateLegend();
+}
+
+function countDown() {
+  if (timer == 0) {
+    closePopup();
+    recognition.stop();
+
+    switch (categoryFlag){
+    case 1:
+      let visons = document.getElementById('vision');
+      visons.value = words;
+      break;
+    case 2:
+      let learns = document.getElementById('learn');
+      learns.value = words;
+      break;
+    case 3:
+      let analyzes = document.getElementById('analyze');
+      analyzes.value = words;
+      break;
+    }
+  } else {
+    let element = document.getElementById('timer');
+    element.innerHTML = "残り<br>" + timer + "<br>秒";
+    timer = timer - 1;
+    setTimeout("countDown()",1000);
+  }
+}
+
+function getClick(ele){
+  const id_value = ele.id;
+  console.log(id_value);
+  
+  switch (id_value){
+  case "visionBtn":
+    let visons = document.getElementById('vision');
+    visons.value = "最初からとも曖昧なんすけどね5分以内スピーチ原稿5分以内";
+    categoryFlag = 1;
+    break;
+  case "learnBtn":
+    let learns = document.getElementById('learn');
+    learns.value = "";
+    categoryFlag = 2;
+    break;
+  case "analyzeBtn":
+    let analyzes = document.getElementById('analyze');
+    analyzes.value = "";
+    categoryFlag = 3;
+    break;
+  }
+
+  timer = 10;
+  let element = document.getElementById('timer');
+  element.innerHTML = "残り<br>" + timer + "<br>秒";
+
+  openPopup();
+
+  words = '';
+  finalTranscript = '';
+
+  recognition.start();
+  setTimeout("countDown()",1000);
+}
+</script>
