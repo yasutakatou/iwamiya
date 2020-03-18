@@ -131,7 +131,7 @@
 <div id="chartPopup">
   <canvas id="radarChart" height="400" width="400"></canvas>
   <div id="legend"></div>
-  <input type="button" value="close popup" onclick="closeChartPopup(); event.stopPropagation()">"
+  <input type="button" value="close popup" onclick="closeChartPopup(); event.stopPropagation()">
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
 <script>
@@ -337,7 +337,7 @@ function getClick(ele){
   switch (id_value){
   case "visionBtn":
     let visons = document.getElementById('vision');
-    visons.value = "最初からとも曖昧なんすけどね5分以内スピーチ原稿5分以内";
+    visons.value = "";
     categoryFlag = 1;
     break;
   case "learnBtn":
